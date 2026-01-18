@@ -1,138 +1,10 @@
-<!DOCTYPE html>
-<html lang="ms">
-<head>
-<meta charset="UTF-8">
-
-<!-- FIX UNTUK PHONE -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Monitoring Kolam Ikan Keli</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://www.gstatic.com/charts/loader.js"></script>
-
-<style>
-body{
-  margin:0;
-  font-family:Segoe UI,sans-serif;
-  background:linear-gradient(135deg,#0a3d62,#1e90ff);
-  color:white;
-}
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px;
-  background:#00000040;
-}
-header img{height:45px}
-
-.top-box{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-  gap:10px;
-  padding:15px;
-}
-
-.box{
-  background:#ffffff25;
-  border-radius:15px;
-  padding:10px;
-  text-align:center;
-}
-.box h2{margin:5px 0;font-size:16px}
-.box p{margin:5px 0;font-size:22px;font-weight:bold}
-.box span{font-size:12px}
-
-.refresh-box{text-align:center;margin-bottom:10px;}
-
-button{
-  background:#0f6abf;
-  border:none;
-  padding:10px 20px;
-  font-size:15px;
-  color:white;
-  border-radius:25px;
-  cursor:pointer;
-}
-
-table{width:100%;border-collapse:collapse;}
-th,td{
-  padding:6px;
-  text-align:center;
-  border-bottom:1px solid #ffffff40;
-  font-size:13px;
-}
-th{background:#0f6abf}
-</style>
-</head>
-
-<body>
-
-<header>
-  <img src="kv_chenor.png">
-  <b style="font-size:14px;">Monitoring Kolam Ikan Keli</b>
-  <img src="umpsa.png">
-</header>
-
-<div class="top-box">
-  <div class="box">
-    <h2>pH</h2>
-    <p id="ph">-</p>
-    <span id="phTime">-</span>
-  </div>
-  <div class="box">
-    <h2>Turbidity</h2>
-    <p id="turbidity">-</p>
-    <span id="turTime">-</span>
-  </div>
-  <div class="box">
-    <h2>Suhu °C</h2>
-    <p id="temp">-</p>
-    <span id="tempTime">-</span>
-  </div>
-</div>
-
-<div class="refresh-box">
-  <button onclick="loadData()">🔄 Refresh</button><br><br>
-
-  📅 Pilih Tarikh:
-  <input 
-    type="date" 
-    id="dateFilter" 
-    onchange="loadData()"
-    style="color:black;padding:5px;border-radius:8px;border:none;"
-  >
-</div>
-
-<div style="display:flex;justify-content:center;gap:10px;margin:10px;">
-  <img src="ikan_keli1.png" style="height:90px;border-radius:15px;">
-  <img src="ikan_keli2.png" style="height:90px;border-radius:15px;">
-</div>
-
-<div>
-  <canvas id="chart"></canvas>
-</div>
-
-<div>
-  <div style="max-height:250px;overflow-y:auto;">
-    <table>
-      <thead>
-        <tr>
-          <th>Masa</th>
-          <th>pH</th>
-          <th>Turbidity</th>
-          <th>Suhu</th>
-        </tr>
-      </thead>
-      <tbody id="tableData"></tbody>
-    </table>
-  </div>
-</div>
-
 <script>
 google.charts.load('current', {'packages':['corechart']});
-google.charts.setOnLoadCallback(loadData);
+google.charts.setOnLoadCallback(() => {
+  loadData();
+  // Auto-refresh setiap 10 saat
+  setInterval(loadData, 10000);
+});
 
 const SHEET_ID = "1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
 const SHEET_NAME = "Sheet1";
@@ -143,11 +15,19 @@ function loadData() {
   );
 
   q.send(res => {
-    if (res.isError()) return;
+    if (res.isError()) {
+      console.error(res.getMessage());
+      return;
+    }
 
     const d = res.getDataTable();
     const r = d.getNumberOfRows();
-    if (r === 0) return;
+    if (r === 0) {
+      resetTopBoxes();
+      document.getElementById("tableData").innerHTML = "";
+      if (window.chart) window.chart.destroy();
+      return;
+    }
 
     let labels = [], ph = [], tu = [], te = [];
     let table = document.getElementById("tableData");
@@ -173,13 +53,17 @@ function loadData() {
         </tr>`;
     }
 
-    const lastIndex = r - 1;
-    document.getElementById("ph").innerText = d.getValue(lastIndex,1);
-    document.getElementById("turbidity").innerText = d.getValue(lastIndex,2);
-    document.getElementById("temp").innerText = d.getValue(lastIndex,3);
-    document.getElementById("phTime").innerText = d.getValue(lastIndex,0);
-    document.getElementById("turTime").innerText = d.getValue(lastIndex,0);
-    document.getElementById("tempTime").innerText = d.getValue(lastIndex,0);
+    if (labels.length > 0) {
+      const lastIndex = labels.length - 1;
+      document.getElementById("ph").innerText = ph[lastIndex];
+      document.getElementById("turbidity").innerText = tu[lastIndex];
+      document.getElementById("temp").innerText = te[lastIndex];
+      document.getElementById("phTime").innerText = labels[lastIndex];
+      document.getElementById("turTime").innerText = labels[lastIndex];
+      document.getElementById("tempTime").innerText = labels[lastIndex];
+    } else {
+      resetTopBoxes();
+    }
 
     if (window.chart) window.chart.destroy();
     window.chart = new Chart(document.getElementById("chart"), {
@@ -203,7 +87,13 @@ function loadData() {
     });
   });
 }
-</script>
 
-</body>
-</html>
+function resetTopBoxes() {
+  document.getElementById("ph").innerText = "-";
+  document.getElementById("turbidity").innerText = "-";
+  document.getElementById("temp").innerText = "-";
+  document.getElementById("phTime").innerText = "-";
+  document.getElementById("turTime").innerText = "-";
+  document.getElementById("tempTime").innerText = "-";
+}
+</script>
