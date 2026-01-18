@@ -134,37 +134,37 @@ th{background:#0f6abf}
 google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(loadData);
 
-const SHEET_ID="1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
-const SHEET_NAME="Sheet1";
+const SHEET_ID = "1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
+const SHEET_NAME = "Sheet1";
 
-function loadData(){
-  const q=new google.visualization.Query(
+function loadData() {
+  const q = new google.visualization.Query(
     `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`
   );
 
-  q.send(res=>{
-    if(res.isError()) return;
+  q.send(res => {
+    if (res.isError()) return;
 
-    const d=res.getDataTable();
-    const r=d.getNumberOfRows();
-    if(r===0) return;
+    const d = res.getDataTable();
+    const r = d.getNumberOfRows();
+    if (r === 0) return;
 
-    let labels=[],ph=[],tu=[],te=[];
-    let table=document.getElementById("tableData");
-    table.innerHTML="";
+    let labels = [], ph = [], tu = [], te = [];
+    let table = document.getElementById("tableData");
+    table.innerHTML = "";
 
-    const selectedDate=document.getElementById("dateFilter").value;
+    const selectedDate = document.getElementById("dateFilter").value;
 
-    for(let i=0;i<r;i++){
-      let masa=d.getValue(i,0).toString();
-      if(selectedDate && !masa.includes(selectedDate)) continue;
+    for (let i = 0; i < r; i++) {
+      let masa = d.getValue(i,0).toString();
+      if (selectedDate && !masa.includes(selectedDate)) continue;
 
       labels.push(masa);
       ph.push(d.getValue(i,1));
       tu.push(d.getValue(i,2));
       te.push(d.getValue(i,3));
 
-      table.innerHTML+=`
+      table.innerHTML += `
         <tr>
           <td>${masa}</td>
           <td>${d.getValue(i,1)}</td>
@@ -173,37 +173,36 @@ function loadData(){
         </tr>`;
     }
 
-    const last=r-1;
-    document.getElementById("ph").innerText=d.getValue(last,1);
-    document.getElementById("turbidity").innerText=d.getValue(last,2);
-    document.getElementById("temp").innerText=d.getValue(last,3);
-    document.getElementById("phTime").innerText=d.getValue(last,0);
-    document.getElementById("turTime").innerText=d.getValue(last,0);
-    document.getElementById("tempTime").innerText=d.getValue(last,0);
+    const lastIndex = r - 1;
+    document.getElementById("ph").innerText = d.getValue(lastIndex,1);
+    document.getElementById("turbidity").innerText = d.getValue(lastIndex,2);
+    document.getElementById("temp").innerText = d.getValue(lastIndex,3);
+    document.getElementById("phTime").innerText = d.getValue(lastIndex,0);
+    document.getElementById("turTime").innerText = d.getValue(lastIndex,0);
+    document.getElementById("tempTime").innerText = d.getValue(lastIndex,0);
 
-    if(window.chart) window.chart.destroy();
-    window.chart=new Chart(document.getElementById("chart"),{
-      type:"line",
-      data:{
-        labels:labels,
-        datasets:[
-          {label:"pH",data:ph,borderWidth:2},
-          {label:"Turbidity",data:tu,borderWidth:2},
-          {label:"Suhu",data:te,borderWidth:2}
+    if (window.chart) window.chart.destroy();
+    window.chart = new Chart(document.getElementById("chart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          { label: "pH", data: ph, borderWidth: 2, borderColor: "yellow", fill: false },
+          { label: "Turbidity", data: tu, borderWidth: 2, borderColor: "cyan", fill: false },
+          { label: "Suhu", data: te, borderWidth: 2, borderColor: "lime", fill: false }
         ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: "white" } } },
+        scales: {
+          x: { ticks: { color: "white" } },
+          y: { ticks: { color: "white" } }
+        }
       }
     });
   });
 }
-
-loadData();
-setInterval(loadData,10000);
-</script>
-
-</body>
-</html>
-loadData();
-setInterval(loadData,10000);
 </script>
 
 </body>
