@@ -67,17 +67,33 @@ th,td{
   border-bottom:1px solid #ffffff40;
 }
 th{background:#0f6abf}
+
+/* ===== CARD ===== */
+.card{
+  background:#ffffff20;
+  margin:20px;
+  padding:20px;
+  border-radius:15px;
+  color:white;
+}
+.card-dark{
+  background:white;
+  color:black;
+  text-align:center;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <img src="kv_chenor.png">
+  <img src="kv_chenor.png" alt="KV Chenor">
   <b>Sistem Monitoring Kolam Ikan Keli</b>
-  <img src="umpsa.png">
+  <img src="umpsa.png" alt="UMPSA">
 </header>
 
+<!-- ===== 3 KOTAK DATA TERKINI ===== -->
 <div class="top-box">
   <div class="box">
     <h2>pH Air</h2>
@@ -96,24 +112,46 @@ th{background:#0f6abf}
   </div>
 </div>
 
-<div class="card" style="background:white;color:black;text-align:center;font-weight:bold;">
+<!-- ===== TEKNOLOGI ===== -->
+<div class="card card-dark">
   TEKNOLOGI AUTOMASI ELEKTRONIK INDUSTRI<br>
   <span style="font-weight:normal;font-size:15px;">Monitoring Kolam Ikan Keli</span>
 </div>
 
+<!-- ===== REFRESH BUTTON ===== -->
 <div class="refresh-box">
   <button onclick="loadData()">🔄 Refresh Data</button>
 </div>
 
-<div style="display:flex;justify-content:center;align-items:center;gap:20px;margin:20px;">
-  <img src="ikan_keli1.png" style="height:120px;max-width:40vw;border-radius:15px;">
-  <img src="ikan_keli2.png" style="height:120px;max-width:40vw;border-radius:15px;">
+<!-- ===== GAMBAR IKAN KELI BESAR ===== -->
+<div style="
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:30px;
+  margin:20px;
+  flex-wrap:wrap;
+">
+  <img src="ikan_keli1.png" style="
+    height:400px;
+    max-width:48%;
+    border-radius:15px;
+    object-fit:cover;
+  ">
+  <img src="ikan_keli2.png" style="
+    height:400px;
+    max-width:48%;
+    border-radius:15px;
+    object-fit:cover;
+  ">
 </div>
 
+<!-- ===== TIMELINE CHART ===== -->
 <div class="card">
   <canvas id="chart"></canvas>
 </div>
 
+<!-- ===== JADUAL DATA ===== -->
 <div class="card">
   <table>
     <thead>
@@ -180,10 +218,17 @@ function loadData(){
       data:{
         labels:labels,
         datasets:[
-          {label:"pH",data:ph,borderWidth:2},
-          {label:"Turbidity",data:tu,borderWidth:2},
-          {label:"Suhu (°C)",data:te,borderWidth:2}
+          {label:"pH",data:ph,borderWidth:2,borderColor:"#f1c40f",backgroundColor:"rgba(241,196,15,0.2)"},
+          {label:"Turbidity",data:tu,borderWidth:2,borderColor:"#2ecc71",backgroundColor:"rgba(46,204,113,0.2)"},
+          {label:"Suhu (°C)",data:te,borderWidth:2,borderColor:"#e74c3c",backgroundColor:"rgba(231,76,60,0.2)"}
         ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          y:{beginAtZero:false}
+        }
       }
     });
   });
