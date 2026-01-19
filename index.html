@@ -57,19 +57,33 @@ header img{height:55px}
   font-weight:bold;
 }
 
-/* ===== BUTTON ===== */
-.refresh-box{text-align:center}
-button{
+/* ===== BUTTONS ===== */
+.button-container{
+  text-align:center;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+button, .btn-link{
   background:#0f6abf;
   border:none;
-  padding:10px 25px;
+  padding:12px 25px;
   font-size:16px;
   color:white;
   border-radius:25px;
   cursor: pointer;
   transition: 0.3s;
+  text-decoration: none;
+  display: inline-block;
 }
-button:hover{background: #1e90ff;}
+.btn-sheet{
+  background:#2ecc71; /* Warna Hijau untuk Google Sheets */
+}
+button:hover, .btn-link:hover{
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
 
 /* ===== IMAGE ===== */
 .image-box{
@@ -107,13 +121,8 @@ th{background:#0f6abf}
   header img{height:45px}
   .top-box{grid-template-columns:1fr}
   .image-box img{max-width:100%; height:auto;}
-  .chart-box{height:300px}
-  .card table{
-    display:block;
-    overflow-x:auto;
-    white-space:nowrap;
-    font-size:14px;
-  }
+  .button-container{flex-direction: column; align-items: center;}
+  button, .btn-link{width: 80%;}
 }
 </style>
 </head>
@@ -149,8 +158,9 @@ th{background:#0f6abf}
   <span style="font-weight:normal">Monitoring Kolam Ikan Keli</span>
 </div>
 
-<div class="refresh-box">
-  <button onclick="loadData()">🔄 Refresh</button>
+<div class="button-container">
+  <button onclick="loadData()">🔄 Refresh Data</button>
+  <a href="https://docs.google.com/spreadsheets/d/1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU/edit" target="_blank" class="btn-link btn-sheet">📊 Buka Google Sheet</a>
 </div>
 
 <div class="image-box">
@@ -180,18 +190,11 @@ th{background:#0f6abf}
 const SHEET_ID = "1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
 const SHEET_NAME = "Sheet1";
 
-/**
- * Fungsi untuk menukar format Date(Y,M,D,H,m,s) Google Sheets 
- * kepada format pembacaan manusia yang betul.
- */
 function cleanDate(dateValue) {
   if (!dateValue) return "-";
-  
-  // Jika format adalah Date(2026,0,19,...)
   if (typeof dateValue === 'string' && dateValue.includes("Date")) {
     const vals = dateValue.match(/\d+/g);
     if (vals) {
-      // Nota: Bulan dalam JS (0-11), Google hantar pun (0-11), jadi tak perlu -1
       const d = new Date(vals[0], vals[1], vals[2], vals[3] || 0, vals[4] || 0, vals[5] || 0);
       return d.toLocaleString('ms-MY', { 
         day: '2-digit', month: '2-digit', year: 'numeric', 
@@ -213,12 +216,9 @@ async function loadData(){
     if(!rows || rows.length === 0) return;
 
     const last = rows.length - 1;
-    
-    // Helper untuk ambil data
     const getVal = (r, c) => rows[r].c[c]?.v ?? "-";
     const getDate = (r, c) => rows[r].c[c]?.f ?? cleanDate(rows[r].c[c]?.v);
 
-    // Update Box Atas
     document.getElementById('ph').innerText = getVal(last, 1);
     document.getElementById('tu').innerText = getVal(last, 2);
     document.getElementById('te').innerText = getVal(last, 3);
@@ -232,7 +232,6 @@ async function loadData(){
     const tableBody = document.getElementById('table');
     tableBody.innerHTML = "";
 
-    // Ambil 15 data terakhir untuk jadual dan graf
     for(let i = Math.max(0, rows.length - 15); i < rows.length; i++){
       const timestamp = getDate(i, 0);
       const valPh = getVal(i, 1);
@@ -253,7 +252,6 @@ async function loadData(){
         </tr>`;
     }
 
-    // Update Graf
     if(window.myChart) window.myChart.destroy();
     const ctx = document.getElementById('chart').getContext('2d');
     window.myChart = new Chart(ctx, {
@@ -281,9 +279,7 @@ async function loadData(){
   }
 }
 
-// Jalankan fungsi
 loadData();
-// Auto-refresh setiap 10 saat
 setInterval(loadData, 10000);
 </script>
 
