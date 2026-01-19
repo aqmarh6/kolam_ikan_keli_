@@ -10,7 +10,7 @@
 <style>
 body{
   margin:0;
-  font-family:Segoe UI,sans-serif;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background:linear-gradient(135deg,#0a3d62,#1e90ff);
   color:white;
 }
@@ -21,7 +21,7 @@ header{
   justify-content:space-between;
   align-items:center;
   padding:15px;
-  background:#00000040;
+  background:rgba(0, 0, 0, 0.25);
 }
 header img{height:55px}
 
@@ -33,18 +33,19 @@ header img{height:55px}
   padding:20px;
 }
 .box{
-  background:#ffffff25;
+  background:rgba(255, 255, 255, 0.15);
   border-radius:15px;
   padding:15px;
   text-align:center;
+  backdrop-filter: blur(5px);
 }
 .box h2{margin:5px 0;font-size:20px}
 .box p{margin:5px 0;font-size:26px;font-weight:bold}
-.box span{font-size:13px}
+.box span{font-size:13px; color: #d1d1d1;}
 
 /* ===== CARD ===== */
 .card{
-  background:#ffffff20;
+  background:rgba(255, 255, 255, 0.1);
   margin:20px;
   padding:20px;
   border-radius:15px;
@@ -65,7 +66,10 @@ button{
   font-size:16px;
   color:white;
   border-radius:25px;
+  cursor: pointer;
+  transition: 0.3s;
 }
+button:hover{background: #1e90ff;}
 
 /* ===== IMAGE ===== */
 .image-box{
@@ -73,6 +77,7 @@ button{
   gap:20px;
   justify-content:center;
   flex-wrap:wrap;
+  margin-top: 20px;
 }
 .image-box img{
   max-width:48%;
@@ -87,8 +92,8 @@ table{
   border-collapse:collapse;
 }
 th,td{
-  padding:8px;
-  border-bottom:1px solid #ffffff40;
+  padding:12px;
+  border-bottom:1px solid rgba(255, 255, 255, 0.2);
   text-align:center;
 }
 th{background:#0f6abf}
@@ -100,24 +105,15 @@ th{background:#0f6abf}
 @media(max-width:768px){
   header{flex-direction:column;gap:10px}
   header img{height:45px}
-
   .top-box{grid-template-columns:1fr}
-
-  .image-box img{
-    max-width:100%;
-    height:auto;
-  }
-
+  .image-box img{max-width:100%; height:auto;}
   .chart-box{height:300px}
-
   .card table{
     display:block;
     overflow-x:auto;
     white-space:nowrap;
     font-size:14px;
   }
-
-  button{width:90%}
 }
 </style>
 </head>
@@ -125,12 +121,11 @@ th{background:#0f6abf}
 <body>
 
 <header>
-  <img src="kv_chenor.png">
+  <img src="kv_chenor.png" alt="Logo KV">
   <b>Sistem Monitoring Kolam Ikan Keli</b>
-  <img src="umpsa.png">
+  <img src="umpsa.png" alt="Logo UMPSA">
 </header>
 
-<!-- ===== DATA TERKINI ===== -->
 <div class="top-box">
   <div class="box">
     <h2>pH Air</h2>
@@ -159,8 +154,8 @@ th{background:#0f6abf}
 </div>
 
 <div class="image-box">
-  <img src="ikan_keli1.png">
-  <img src="ikan_keli2.png">
+  <img src="ikan_keli1.png" alt="Gambar Kolam 1">
+  <img src="ikan_keli2.png" alt="Gambar Kolam 2">
 </div>
 
 <div class="card chart-box">
@@ -173,8 +168,8 @@ th{background:#0f6abf}
       <tr>
         <th>Masa</th>
         <th>pH</th>
-        <th>Turbidity</th>
-        <th>Suhu</th>
+        <th>Turbidity (NTU)</th>
+        <th>Suhu (°C)</th>
       </tr>
     </thead>
     <tbody id="table"></tbody>
@@ -182,62 +177,114 @@ th{background:#0f6abf}
 </div>
 
 <script>
-const SHEET_ID="1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
-const SHEET_NAME="Sheet1";
+const SHEET_ID = "1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
+const SHEET_NAME = "Sheet1";
 
-async function loadData(){
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json`;
-  const res=await fetch(url);
-  const text=await res.text();
-  const json=JSON.parse(text.substring(47).slice(0,-2));
-  const rows=json.table.rows;
-
-  if(!rows.length) return;
-
-  const get=(r,c)=>rows[r].c[c]?.v ?? "-";
-  const last=rows.length-1;
-
-  ph.innerText=get(last,1);
-  tu.innerText=get(last,2);
-  te.innerText=get(last,3);
-
-  time1.innerText=time2.innerText=time3.innerText=get(last,0);
-
-  let labels=[],phArr=[],tuArr=[],teArr=[];
-  table.innerHTML="";
-
-  for(let i=Math.max(0,rows.length-15);i<rows.length;i++){
-    labels.push(get(i,0));
-    phArr.push(get(i,1));
-    tuArr.push(get(i,2));
-    teArr.push(get(i,3));
-
-    table.innerHTML+=`
-      <tr>
-        <td>${get(i,0)}</td>
-        <td>${get(i,1)}</td>
-        <td>${get(i,2)}</td>
-        <td>${get(i,3)}</td>
-      </tr>`;
+/**
+ * Fungsi untuk menukar format Date(Y,M,D,H,m,s) Google Sheets 
+ * kepada format pembacaan manusia yang betul.
+ */
+function cleanDate(dateValue) {
+  if (!dateValue) return "-";
+  
+  // Jika format adalah Date(2026,0,19,...)
+  if (typeof dateValue === 'string' && dateValue.includes("Date")) {
+    const vals = dateValue.match(/\d+/g);
+    if (vals) {
+      // Nota: Bulan dalam JS (0-11), Google hantar pun (0-11), jadi tak perlu -1
+      const d = new Date(vals[0], vals[1], vals[2], vals[3] || 0, vals[4] || 0, vals[5] || 0);
+      return d.toLocaleString('ms-MY', { 
+        day: '2-digit', month: '2-digit', year: 'numeric', 
+        hour: '2-digit', minute: '2-digit', hour12: false 
+      });
+    }
   }
-
-  if(window.myChart) myChart.destroy();
-  myChart=new Chart(chart,{
-    type:"line",
-    data:{
-      labels,
-      datasets:[
-        {label:"pH",data:phArr,borderWidth:2},
-        {label:"Turbidity",data:tuArr,borderWidth:2},
-        {label:"Suhu",data:teArr,borderWidth:2}
-      ]
-    },
-    options:{responsive:true,maintainAspectRatio:false}
-  });
+  return dateValue;
 }
 
+async function loadData(){
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0,-2));
+    const rows = json.table.rows;
+
+    if(!rows || rows.length === 0) return;
+
+    const last = rows.length - 1;
+    
+    // Helper untuk ambil data
+    const getVal = (r, c) => rows[r].c[c]?.v ?? "-";
+    const getDate = (r, c) => rows[r].c[c]?.f ?? cleanDate(rows[r].c[c]?.v);
+
+    // Update Box Atas
+    document.getElementById('ph').innerText = getVal(last, 1);
+    document.getElementById('tu').innerText = getVal(last, 2);
+    document.getElementById('te').innerText = getVal(last, 3);
+
+    const currentTime = getDate(last, 0);
+    document.getElementById('time1').innerText = currentTime;
+    document.getElementById('time2').innerText = currentTime;
+    document.getElementById('time3').innerText = currentTime;
+
+    let labels=[], phArr=[], tuArr=[], teArr=[];
+    const tableBody = document.getElementById('table');
+    tableBody.innerHTML = "";
+
+    // Ambil 15 data terakhir untuk jadual dan graf
+    for(let i = Math.max(0, rows.length - 15); i < rows.length; i++){
+      const timestamp = getDate(i, 0);
+      const valPh = getVal(i, 1);
+      const valTu = getVal(i, 2);
+      const valTe = getVal(i, 3);
+
+      labels.push(timestamp);
+      phArr.push(valPh);
+      tuArr.push(valTu);
+      teArr.push(valTe);
+
+      tableBody.innerHTML += `
+        <tr>
+          <td>${timestamp}</td>
+          <td>${valPh}</td>
+          <td>${valTu}</td>
+          <td>${valTe}</td>
+        </tr>`;
+    }
+
+    // Update Graf
+    if(window.myChart) window.myChart.destroy();
+    const ctx = document.getElementById('chart').getContext('2d');
+    window.myChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          { label: "pH", data: phArr, borderColor: "#ffdd59", tension: 0.3, fill: false },
+          { label: "Turbidity", data: tuArr, borderColor: "#05c46b", tension: 0.3, fill: false },
+          { label: "Suhu", data: teArr, borderColor: "#ff5e57", tension: 0.3, fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: 'white' } } },
+        scales: {
+          x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+          y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Gagal memuatkan data:", error);
+  }
+}
+
+// Jalankan fungsi
 loadData();
-setInterval(loadData,10000);
+// Auto-refresh setiap 10 saat
+setInterval(loadData, 10000);
 </script>
 
 </body>
