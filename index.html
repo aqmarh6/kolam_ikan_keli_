@@ -70,13 +70,11 @@ button{
 }
 
 /* ===== CHART ===== */
-.chart-box{
-  height:280px;
-}
+.chart-box{height:280px}
 
 /* ===== TABLE ===== */
 .table-wrapper{
-  max-height:300px;
+  max-height:320px;
   overflow-y:auto;
 }
 table{
@@ -94,7 +92,7 @@ th{
   top:0;
 }
 
-/* ===== MOBILE FIX ===== */
+/* ===== MOBILE ===== */
 @media(max-width:768px){
   .top-box{grid-template-columns:1fr}
 }
@@ -137,12 +135,18 @@ th{
   <button onclick="loadData()">🔄 Refresh</button>
 </div>
 
+<!-- ===== PILIH TARIKH ===== -->
+<div class="card">
+  <label>Pilih Tarikh:</label>
+  <input type="date" id="dateFilter" onchange="loadData()">
+</div>
+
 <!-- ===== CARTA ===== -->
 <div class="card chart-box">
   <canvas id="chart"></canvas>
 </div>
 
-<!-- ===== JADUAL SCROLL ===== -->
+<!-- ===== JADUAL ===== -->
 <div class="card">
   <div class="table-wrapper">
     <table>
@@ -176,32 +180,43 @@ function loadData(){
 
     const d=res.getDataTable();
     const r=d.getNumberOfRows();
-    const last=r-1;
+    const table=document.getElementById("tableData");
+    table.innerHTML="";
 
-    ph.innerText=d.getValue(last,1);
-    turbidity.innerText=d.getValue(last,2);
-    temp.innerText=d.getValue(last,3);
-
-    phTime.innerText=d.getValue(last,0);
-    turTime.innerText=d.getValue(last,0);
-    tempTime.innerText=d.getValue(last,0);
+    const selectedDate=document.getElementById("dateFilter").value;
 
     let labels=[],phD=[],tuD=[],teD=[];
-    tableData.innerHTML="";
+    let lastIndex=-1;
 
     for(let i=0;i<r;i++){
-      labels.push(d.getValue(i,0));
+      let time=d.getValue(i,0);
+      let rowDate=new Date(time).toISOString().slice(0,10);
+
+      if(selectedDate && rowDate!==selectedDate) continue;
+
+      labels.push(time);
       phD.push(d.getValue(i,1));
       tuD.push(d.getValue(i,2));
       teD.push(d.getValue(i,3));
+      lastIndex=i;
 
-      tableData.innerHTML+=`
+      table.innerHTML+=`
       <tr>
-        <td>${d.getValue(i,0)}</td>
+        <td>${time}</td>
         <td>${d.getValue(i,1)}</td>
         <td>${d.getValue(i,2)}</td>
         <td>${d.getValue(i,3)}</td>
       </tr>`;
+    }
+
+    if(lastIndex>=0){
+      ph.innerText=d.getValue(lastIndex,1);
+      turbidity.innerText=d.getValue(lastIndex,2);
+      temp.innerText=d.getValue(lastIndex,3);
+
+      phTime.innerText=d.getValue(lastIndex,0);
+      turTime.innerText=d.getValue(lastIndex,0);
+      tempTime.innerText=d.getValue(lastIndex,0);
     }
 
     if(window.chart) chart.destroy();
@@ -212,7 +227,7 @@ function loadData(){
         datasets:[
           {label:"pH",data:phD,borderColor:"#f1c40f"},
           {label:"Turbidity",data:tuD,borderColor:"#2ecc71"},
-          {label:"Suhu",data:teD,borderColor:"#e74c3c"}
+          {label:"Suhu (°C)",data:teD,borderColor:"#e74c3c"}
         ]
       },
       options:{responsive:true,maintainAspectRatio:false}
