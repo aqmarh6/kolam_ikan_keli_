@@ -15,8 +15,6 @@ body{
   background:linear-gradient(135deg,#0a3d62,#1e90ff);
   color:white;
 }
-
-/* ===== HEADER ===== */
 header{
   display:flex;
   justify-content:space-between;
@@ -26,7 +24,6 @@ header{
 }
 header img{height:45px}
 
-/* ===== TOP BOX ===== */
 .top-box{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -39,40 +36,14 @@ header img{height:45px}
   padding:15px;
   text-align:center;
 }
-.box h2{margin:5px 0;font-size:18px}
-.box p{margin:5px 0;font-size:24px;font-weight:bold}
-.box span{font-size:12px;opacity:.9}
+.box p{font-size:24px;font-weight:bold;margin:5px 0}
 
-/* ===== CARD ===== */
 .card{
   background:#ffffff20;
   margin:15px;
   padding:15px;
   border-radius:15px;
 }
-.card-dark{
-  background:white;
-  color:black;
-  text-align:center;
-  font-weight:bold;
-}
-
-/* ===== BUTTON ===== */
-.refresh-box{text-align:center;margin-bottom:10px}
-button{
-  background:#0f6abf;
-  border:none;
-  padding:10px 25px;
-  font-size:16px;
-  color:white;
-  border-radius:25px;
-  cursor:pointer;
-}
-
-/* ===== CHART ===== */
-.chart-box{height:280px}
-
-/* ===== TABLE ===== */
 .table-wrapper{
   max-height:320px;
   overflow-y:auto;
@@ -91,8 +62,8 @@ th{
   position:sticky;
   top:0;
 }
+.chart-box{height:280px}
 
-/* ===== MOBILE ===== */
 @media(max-width:768px){
   .top-box{grid-template-columns:1fr}
 }
@@ -107,46 +78,33 @@ th{
   <img src="umpsa.png">
 </header>
 
-<!-- ===== DATA TERKINI ===== -->
 <div class="top-box">
   <div class="box">
-    <h2>pH Air</h2>
+    <div>pH</div>
     <p id="ph">-</p>
-    <span id="phTime">-</span>
+    <small id="phTime">-</small>
   </div>
   <div class="box">
-    <h2>Turbidity</h2>
+    <div>Turbidity</div>
     <p id="turbidity">-</p>
-    <span id="turTime">-</span>
+    <small id="turTime">-</small>
   </div>
   <div class="box">
-    <h2>Suhu (°C)</h2>
+    <div>Suhu (°C)</div>
     <p id="temp">-</p>
-    <span id="tempTime">-</span>
+    <small id="tempTime">-</small>
   </div>
 </div>
 
-<div class="card card-dark">
-  TEKNOLOGI AUTOMASI ELEKTRONIK INDUSTRI<br>
-  <span style="font-weight:normal">Monitoring Kolam Ikan Keli</span>
-</div>
-
-<div class="refresh-box">
-  <button onclick="loadData()">🔄 Refresh</button>
-</div>
-
-<!-- ===== PILIH TARIKH ===== -->
 <div class="card">
-  <label>Pilih Tarikh:</label>
+  Pilih Tarikh:
   <input type="date" id="dateFilter" onchange="loadData()">
 </div>
 
-<!-- ===== CARTA ===== -->
 <div class="card chart-box">
   <canvas id="chart"></canvas>
 </div>
 
-<!-- ===== JADUAL ===== -->
 <div class="card">
   <div class="table-wrapper">
     <table>
@@ -155,7 +113,7 @@ th{
           <th>Masa</th>
           <th>pH</th>
           <th>Turbidity</th>
-          <th>Suhu (°C)</th>
+          <th>Suhu</th>
         </tr>
       </thead>
       <tbody id="tableData"></tbody>
@@ -170,6 +128,16 @@ google.charts.setOnLoadCallback(loadData);
 const SHEET_ID="1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
 const SHEET_NAME="Sheet1";
 
+function extractDate(str){
+  // Mon Jan 19 2026 -> 2026-01-19
+  const p=str.split(" ");
+  const monthMap={
+    Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",
+    Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"
+  };
+  return `${p[3]}-${monthMap[p[1]]}-${p[2]}`;
+}
+
 function loadData(){
   const q=new google.visualization.Query(
     `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`
@@ -183,22 +151,21 @@ function loadData(){
     const table=document.getElementById("tableData");
     table.innerHTML="";
 
-    const selectedDate=document.getElementById("dateFilter").value;
-
+    const selected=document.getElementById("dateFilter").value;
     let labels=[],phD=[],tuD=[],teD=[];
-    let lastIndex=-1;
+    let last=-1;
 
     for(let i=0;i<r;i++){
       let time=d.getValue(i,0);
-      let rowDate=new Date(time).toISOString().slice(0,10);
+      let rowDate=extractDate(time);
 
-      if(selectedDate && rowDate!==selectedDate) continue;
+      if(selected && rowDate!==selected) continue;
 
       labels.push(time);
       phD.push(d.getValue(i,1));
       tuD.push(d.getValue(i,2));
       teD.push(d.getValue(i,3));
-      lastIndex=i;
+      last=i;
 
       table.innerHTML+=`
       <tr>
@@ -209,27 +176,23 @@ function loadData(){
       </tr>`;
     }
 
-    if(lastIndex>=0){
-      ph.innerText=d.getValue(lastIndex,1);
-      turbidity.innerText=d.getValue(lastIndex,2);
-      temp.innerText=d.getValue(lastIndex,3);
-
-      phTime.innerText=d.getValue(lastIndex,0);
-      turTime.innerText=d.getValue(lastIndex,0);
-      tempTime.innerText=d.getValue(lastIndex,0);
+    if(last>=0){
+      ph.innerText=d.getValue(last,1);
+      turbidity.innerText=d.getValue(last,2);
+      temp.innerText=d.getValue(last,3);
+      phTime.innerText=d.getValue(last,0);
+      turTime.innerText=d.getValue(last,0);
+      tempTime.innerText=d.getValue(last,0);
     }
 
     if(window.chart) chart.destroy();
     chart=new Chart(document.getElementById("chart"),{
       type:"line",
-      data:{
-        labels,
-        datasets:[
-          {label:"pH",data:phD,borderColor:"#f1c40f"},
-          {label:"Turbidity",data:tuD,borderColor:"#2ecc71"},
-          {label:"Suhu (°C)",data:teD,borderColor:"#e74c3c"}
-        ]
-      },
+      data:{labels,datasets:[
+        {label:"pH",data:phD,borderColor:"#f1c40f"},
+        {label:"Turbidity",data:tuD,borderColor:"#2ecc71"},
+        {label:"Suhu",data:teD,borderColor:"#e74c3c"}
+      ]},
       options:{responsive:true,maintainAspectRatio:false}
     });
   });
