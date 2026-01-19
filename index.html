@@ -55,74 +55,85 @@ header img{height:55px}
   color:black;
   text-align:center;
   font-weight:bold;
+  padding: 15px;
 }
 
-/* ===== BUTTONS ===== */
-.button-container{
-  text-align:center;
+/* ===== BUTTON SECTION ===== */
+.button-section {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin: 10px 0 20px 0;
+  padding: 0 20px;
 }
-button, .btn-link{
-  background:#0f6abf;
-  border:none;
-  padding:12px 25px;
-  font-size:16px;
-  color:white;
-  border-radius:25px;
+.btn-refresh {
+  background: #0f6abf;
+  border: none;
+  padding: 12px 20px;
+  font-size: 15px;
+  color: white;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  font-weight: bold;
+}
+.btn-gsheet {
+  background: #27ae60;
+  color: white;
+  padding: 12px 20px;
+  font-size: 15px;
   text-decoration: none;
-  display: inline-block;
-}
-.btn-sheet{
-  background:#2ecc71; /* Warna Hijau untuk Google Sheets */
-}
-button:hover, .btn-link:hover{
-  opacity: 0.8;
-  transform: translateY(-2px);
+  border-radius: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* ===== IMAGE ===== */
+/* ===== IMAGE BOX ===== */
 .image-box{
   display:flex;
   gap:20px;
   justify-content:center;
   flex-wrap:wrap;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 .image-box img{
-  max-width:48%;
-  height:380px;
+  max-width:45%;
+  height:350px;
   object-fit:cover;
   border-radius:15px;
 }
 
-/* ===== TABLE ===== */
+/* ===== TABLE WITH SCROLL ===== */
+.table-container {
+  max-height: 400px; /* Hadkan ketinggian jadual */
+  overflow-y: auto; /* Tambah scroll bar menegak */
+}
 table{
   width:100%;
   border-collapse:collapse;
+}
+thead th {
+  position: sticky; /* Tajuk jadual kekal di atas semasa skrol */
+  top: 0;
+  background: #0f6abf;
+  z-index: 1;
 }
 th,td{
   padding:12px;
   border-bottom:1px solid rgba(255, 255, 255, 0.2);
   text-align:center;
 }
-th{background:#0f6abf}
 
 /* ===== CHART ===== */
-.chart-box{height:350px}
+.chart-box{height:400px}
 
-/* ===== MOBILE FIX ===== */
 @media(max-width:768px){
   header{flex-direction:column;gap:10px}
-  header img{height:45px}
   .top-box{grid-template-columns:1fr}
-  .image-box img{max-width:100%; height:auto;}
-  .button-container{flex-direction: column; align-items: center;}
-  button, .btn-link{width: 80%;}
+  .image-box img{max-width:90%; height:auto;}
+  .button-section {flex-direction: column;}
 }
 </style>
 </head>
@@ -130,9 +141,9 @@ th{background:#0f6abf}
 <body>
 
 <header>
-  <img src="kv_chenor.png" alt="Logo KV">
+  <img src="kv_chenor.png">
   <b>Sistem Monitoring Kolam Ikan Keli</b>
-  <img src="umpsa.png" alt="Logo UMPSA">
+  <img src="umpsa.png">
 </header>
 
 <div class="top-box">
@@ -155,17 +166,19 @@ th{background:#0f6abf}
 
 <div class="card card-dark">
   TEKNOLOGI AUTOMASI ELEKTRONIK INDUSTRI<br>
-  <span style="font-weight:normal">Monitoring Kolam Ikan Keli</span>
+  <span style="font-weight:normal">Monitoring Kolam Ikan Keli (60 Data Terakhir)</span>
 </div>
 
-<div class="button-container">
-  <button onclick="loadData()">🔄 Refresh Data</button>
-  <a href="https://docs.google.com/spreadsheets/d/1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU/edit" target="_blank" class="btn-link btn-sheet">📊 Buka Google Sheet</a>
+<div class="button-section">
+  <button class="btn-refresh" onclick="loadData()">🔄 Refresh Data</button>
+  <a href="https://docs.google.com/spreadsheets/d/1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU/edit" target="_blank" class="btn-gsheet">
+     📊 Buka Google Sheet
+  </a>
 </div>
 
 <div class="image-box">
-  <img src="ikan_keli1.png" alt="Gambar Kolam 1">
-  <img src="ikan_keli2.png" alt="Gambar Kolam 2">
+  <img src="ikan_keli1.png">
+  <img src="ikan_keli2.png">
 </div>
 
 <div class="card chart-box">
@@ -173,17 +186,20 @@ th{background:#0f6abf}
 </div>
 
 <div class="card">
-  <table>
-    <thead>
-      <tr>
-        <th>Masa</th>
-        <th>pH</th>
-        <th>Turbidity (NTU)</th>
-        <th>Suhu (°C)</th>
-      </tr>
-    </thead>
-    <tbody id="table"></tbody>
-  </table>
+  <h3>Log 60 Data Terkini</h3>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Masa</th>
+          <th>pH</th>
+          <th>Turbidity</th>
+          <th>Suhu (°C)</th>
+        </tr>
+      </thead>
+      <tbody id="table"></tbody>
+    </table>
+  </div>
 </div>
 
 <script>
@@ -219,20 +235,20 @@ async function loadData(){
     const getVal = (r, c) => rows[r].c[c]?.v ?? "-";
     const getDate = (r, c) => rows[r].c[c]?.f ?? cleanDate(rows[r].c[c]?.v);
 
+    // Update Dashboard Box
     document.getElementById('ph').innerText = getVal(last, 1);
     document.getElementById('tu').innerText = getVal(last, 2);
     document.getElementById('te').innerText = getVal(last, 3);
-
     const currentTime = getDate(last, 0);
-    document.getElementById('time1').innerText = currentTime;
-    document.getElementById('time2').innerText = currentTime;
-    document.getElementById('time3').innerText = currentTime;
+    document.getElementById('time1').innerText = document.getElementById('time2').innerText = document.getElementById('time3').innerText = currentTime;
 
     let labels=[], phArr=[], tuArr=[], teArr=[];
     const tableBody = document.getElementById('table');
     tableBody.innerHTML = "";
 
-    for(let i = Math.max(0, rows.length - 15); i < rows.length; i++){
+    // MENGAMBIL 60 DATA TERAKHIR
+    // Menggunakan Math.max(0, rows.length - 60) supaya jika data belum cukup 60, ia tidak error.
+    for(let i = Math.max(0, rows.length - 60); i < rows.length; i++){
       const timestamp = getDate(i, 0);
       const valPh = getVal(i, 1);
       const valTu = getVal(i, 2);
@@ -243,13 +259,14 @@ async function loadData(){
       tuArr.push(valTu);
       teArr.push(valTe);
 
-      tableBody.innerHTML += `
+      // Masukkan data ke dalam jadual (data terbaru di atas)
+      tableBody.insertAdjacentHTML('afterbegin', `
         <tr>
           <td>${timestamp}</td>
           <td>${valPh}</td>
           <td>${valTu}</td>
           <td>${valTe}</td>
-        </tr>`;
+        </tr>`);
     }
 
     if(window.myChart) window.myChart.destroy();
@@ -259,24 +276,22 @@ async function loadData(){
       data: {
         labels: labels,
         datasets: [
-          { label: "pH", data: phArr, borderColor: "#ffdd59", tension: 0.3, fill: false },
-          { label: "Turbidity", data: tuArr, borderColor: "#05c46b", tension: 0.3, fill: false },
-          { label: "Suhu", data: teArr, borderColor: "#ff5e57", tension: 0.3, fill: false }
+          { label: "pH", data: phArr, borderColor: "#ffdd59", tension: 0.2, pointRadius: 2 },
+          { label: "Turbidity", data: tuArr, borderColor: "#05c46b", tension: 0.2, pointRadius: 2 },
+          { label: "Suhu", data: teArr, borderColor: "#ff5e57", tension: 0.2, pointRadius: 2 }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'white' } } },
         scales: {
-          x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+          x: { ticks: { color: 'white', maxRotation: 45, minRotation: 45 }, grid: { color: 'rgba(255,255,255,0.05)' } },
           y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-        }
+        },
+        plugins: { legend: { labels: { color: 'white' } } }
       }
     });
-  } catch (error) {
-    console.error("Gagal memuatkan data:", error);
-  }
+  } catch (e) { console.error(e); }
 }
 
 loadData();
