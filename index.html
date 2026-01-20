@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monitoring Kolam Ikan Keli</title>
+<title>Water Quality Monitoring System</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -113,7 +113,11 @@ th, td{
   border-bottom:1px solid rgba(255, 255, 255, 0.2);
   text-align:center;
 }
-th{background:#0f6abf; position: sticky; top: 0;}
+th{
+  background:#0f6abf;
+  position: sticky;
+  top: 0;
+}
 
 /* ===== CHART ===== */
 .chart-box{height:400px}
@@ -131,13 +135,13 @@ th{background:#0f6abf; position: sticky; top: 0;}
 
 <header>
   <img src="kv_chenor.png">
-  <b>Sistem Monitoring Kolam Ikan Keli</b>
+  <b>Water Quality Monitoring System</b>
   <img src="umpsa.png">
 </header>
 
 <div class="top-box">
   <div class="box">
-    <h2>pH Air</h2>
+    <h2>pH Level</h2>
     <p id="ph">-</p>
     <span id="time1">-</span>
   </div>
@@ -147,21 +151,25 @@ th{background:#0f6abf; position: sticky; top: 0;}
     <span id="time2">-</span>
   </div>
   <div class="box">
-    <h2>Suhu (°C)</h2>
+    <h2>Temperature (°C)</h2>
     <p id="te">-</p>
     <span id="time3">-</span>
   </div>
 </div>
 
 <div class="card card-dark">
-  TEKNOLOGI AUTOMASI ELEKTRONIK INDUSTRI<br>
-  <span style="font-weight:normal">Monitoring Kolam Ikan Keli (Log 60 Data Terakhir)</span>
+  INDUSTRIAL ELECTRONIC AUTOMATION TECHNOLOGY<br>
+  <span style="font-weight:normal">
+    Water Quality Monitoring System (Last 60 Data Logs)
+  </span>
 </div>
 
 <div class="button-section">
   <button class="btn-refresh" onclick="loadData()">🔄 Refresh Data</button>
-  <a href="https://docs.google.com/spreadsheets/d/1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU/edit" target="_blank" class="btn-gsheet">
-     📊 Buka Google Sheet
+  <a href="https://docs.google.com/spreadsheets/d/1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU/edit"
+     target="_blank"
+     class="btn-gsheet">
+     📊 Open Google Sheet
   </a>
 </div>
 
@@ -179,10 +187,10 @@ th{background:#0f6abf; position: sticky; top: 0;}
     <table>
       <thead>
         <tr>
-          <th>Masa</th>
+          <th>Time</th>
           <th>pH</th>
           <th>Turbidity</th>
-          <th>Suhu (°C)</th>
+          <th>Temperature (°C)</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -194,17 +202,23 @@ th{background:#0f6abf; position: sticky; top: 0;}
 const SHEET_ID = "1dvpDldtPfPRVXpvipldZZs-PlpF2J4ZF-xa1-gFyqKU";
 const SHEET_NAME = "Sheet1";
 
-// Fungsi untuk betulkan format Date(...)
 function formatGSDate(dateStr) {
   if (!dateStr || !dateStr.toString().includes("Date")) return dateStr;
   const match = dateStr.match(/\d+/g);
   if (!match) return dateStr;
   const d = new Date(match[0], match[1], match[2], match[3]||0, match[4]||0, match[5]||0);
-  return d.toLocaleString('ms-MY', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false});
+  return d.toLocaleString('en-GB', {
+    day:'2-digit',
+    month:'2-digit',
+    year:'numeric',
+    hour:'2-digit',
+    minute:'2-digit',
+    hour12:false
+  });
 }
 
 async function loadData(){
-  try {
+  try{
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json`;
     const response = await fetch(url);
     const rawText = await response.text();
@@ -213,75 +227,70 @@ async function loadData(){
 
     if (!rows || rows.length === 0) return;
 
-    // Ambil Data Terakhir untuk Box Atas
-    const lastIdx = rows.length - 1;
-    const currentPH = rows[lastIdx].c[1]?.v ?? "-";
-    const currentTU = rows[lastIdx].c[2]?.v ?? "-";
-    const currentTE = rows[lastIdx].c[3]?.v ?? "-";
-    const currentMS = rows[lastIdx].c[0]?.f ?? formatGSDate(rows[lastIdx].c[0]?.v);
+    const last = rows.length - 1;
+    const ph = rows[last].c[1]?.v ?? "-";
+    const tu = rows[last].c[2]?.v ?? "-";
+    const te = rows[last].c[3]?.v ?? "-";
+    const time = rows[last].c[0]?.f ?? formatGSDate(rows[last].c[0]?.v);
 
-    document.getElementById('ph').innerText = currentPH;
-    document.getElementById('tu').innerText = currentTU;
-    document.getElementById('te').innerText = currentTE;
-    document.getElementById('time1').innerText = currentMS;
-    document.getElementById('time2').innerText = currentMS;
-    document.getElementById('time3').innerText = currentMS;
+    phEl = document.getElementById("ph");
+    tuEl = document.getElementById("tu");
+    teEl = document.getElementById("te");
 
-    // Proses 60 Data Terakhir
-    let labels = [];
-    let phData = [];
-    let tuData = [];
-    let teData = [];
-    let tableHTML = "";
+    phEl.innerText = ph;
+    tuEl.innerText = tu;
+    teEl.innerText = te;
 
-    // Loop dari data terbaru (60 data terakhir)
+    time1.innerText = time;
+    time2.innerText = time;
+    time3.innerText = time;
+
+    let labels=[], phData=[], tuData=[], teData=[], tableHTML="";
     const start = Math.max(0, rows.length - 60);
-    for (let i = start; i < rows.length; i++) {
-      const time = rows[i].c[0]?.f ?? formatGSDate(rows[i].c[0]?.v);
-      const valPH = rows[i].c[1]?.v ?? 0;
-      const valTU = rows[i].c[2]?.v ?? 0;
-      const valTE = rows[i].c[3]?.v ?? 0;
 
-      labels.push(time);
-      phData.push(valPH);
-      tuData.push(valTU);
-      teData.push(valTE);
+    for(let i=start;i<rows.length;i++){
+      const t = rows[i].c[0]?.f ?? formatGSDate(rows[i].c[0]?.v);
+      const p = rows[i].c[1]?.v ?? 0;
+      const u = rows[i].c[2]?.v ?? 0;
+      const e = rows[i].c[3]?.v ?? 0;
 
-      tableHTML = `<tr><td>${time}</td><td>${valPH}</td><td>${valTU}</td><td>${valTE}</td></tr>` + tableHTML;
+      labels.push(t);
+      phData.push(p);
+      tuData.push(u);
+      teData.push(e);
+
+      tableHTML = `<tr><td>${t}</td><td>${p}</td><td>${u}</td><td>${e}</td></tr>` + tableHTML;
     }
 
-    document.getElementById('tableBody').innerHTML = tableHTML;
+    tableBody.innerHTML = tableHTML;
 
-    // Update Graf
-    if (window.myChart) window.myChart.destroy();
-    const ctx = document.getElementById('chart').getContext('2d');
-    window.myChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          { label: 'pH', data: phData, borderColor: '#ffdd59', tension: 0.1 },
-          { label: 'Turbidity', data: tuData, borderColor: '#05c46b', tension: 0.1 },
-          { label: 'Suhu', data: teData, borderColor: '#ff5e57', tension: 0.1 }
+    if(window.myChart) window.myChart.destroy();
+    myChart = new Chart(chart, {
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {label:'pH', data:phData, borderColor:'#ffdd59', tension:0.1},
+          {label:'Turbidity', data:tuData, borderColor:'#05c46b', tension:0.1},
+          {label:'Temperature', data:teData, borderColor:'#ff5e57', tension:0.1}
         ]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: { ticks: { color: 'white' } },
-          y: { ticks: { color: 'white' } }
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{ticks:{color:'white'}},
+          y:{ticks:{color:'white'}}
         },
-        plugins: { legend: { labels: { color: 'white' } } }
+        plugins:{legend:{labels:{color:'white'}}}
       }
     });
 
-  } catch (error) {
-    console.error("Ralat muat data:", error);
+  }catch(err){
+    console.error("Data load error:", err);
   }
 }
 
-// Jalankan
 loadData();
 setInterval(loadData, 10000);
 </script>
